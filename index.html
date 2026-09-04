@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <title>Amader Bazar - Best Deals. Smart Shopping.</title>
+    <meta name="description" content="Amader Bazar - Best Deals. Smart Shopping. Top quality products, fast delivery, and unbeatable discounts." />
+    <meta property="og:title" content="Amader Bazar - Best Deals. Smart Shopping." />
+    <meta property="og:description" content="Amader Bazar - Best Deals. Smart Shopping. Top quality products, fast delivery, and unbeatable discounts." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#f3f6fa] text-slate-800 antialiased selection:bg-amber-500 selection:text-white font-['Plus_Jakarta_Sans',sans-serif]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- Firebase SDK Import -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+      // আপনার Firebase Config
+      const firebaseConfig = {
+        apiKey: "AIzaSyCTBXpY1c6XTR6-zKXHf-bGmdnxy5pTbEw",
+        authDomain: "amader-bazar-4da2a.firebaseapp.com",
+        databaseURL: "https://amader-bazar-4da2a-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "amader-bazar-4da2a",
+        storageBucket: "amader-bazar-4da2a.firebasestorage.app",
+        messagingSenderId: "184579699693",
+        appId: "1:184579699693:web:578fb08f58b17f9d7bede4",
+        measurementId: "G-LQ1QP9YCR4"
+      };
+
+      // Initialize Firebase & Auth
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+    </script>
+  </body>
+</html>
+

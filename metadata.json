@@ -1,0 +1,6 @@
+{
+  "name": "Amader Bazar - Online Shopping Store",
+  "description": "Amader Bazar - Best Deals. Smart Shopping. Modern e-commerce store with category browsing, cart management, instant checkout, and order tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

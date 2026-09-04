@@ -1,0 +1,66 @@
+<svg width="200" height="200" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="abBagGrad" x1="40" y1="20" x2="130" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#fbbf24" />
+      <stop offset="35%" stopColor="#f59e0b" />
+      <stop offset="85%" stopColor="#ea580c" />
+      <stop offset="100%" stopColor="#c2410c" />
+    </linearGradient>
+    <linearGradient id="abBagInner" x1="70" y1="30" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#fef08a" stopOpacity="0.8" />
+      <stop offset="100%" stopColor="#d97706" stopOpacity="0.2" />
+    </linearGradient>
+    <linearGradient id="abMagRim" x1="50" y1="40" x2="130" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#0284c7" />
+      <stop offset="40%" stopColor="#0e7490" />
+      <stop offset="100%" stopColor="#0f172a" />
+    </linearGradient>
+    <radialGradient id="abLensLight" cx="75" cy="75" r="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#fef08a" stopOpacity="0.9" />
+      <stop offset="50%" stopColor="#fbbf24" stopOpacity="0.85" />
+      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.95" />
+    </radialGradient>
+    <linearGradient id="abLetterA" x1="60" y1="50" x2="95" y2="105" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#082f49" />
+      <stop offset="40%" stopColor="#0e7490" />
+      <stop offset="100%" stopColor="#042f2e" />
+    </linearGradient>
+  </defs>
+
+  <!-- Speed lines -->
+  <g stroke="#f59e0b" stroke-width="4.5" stroke-linecap="round">
+    <line x1="22" y1="62" x2="44" y2="62" />
+    <line x1="18" y1="74" x2="40" y2="74" />
+    <line x1="25" y1="86" x2="42" y2="86" />
+  </g>
+
+  <!-- Top-Right Cart/Bag Handle -->
+  <path d="M102 38 L118 36 L124 58" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Shopping Bag Main Body -->
+  <path d="M52 42 C52 38 55 35 59 35 L101 35 C105 35 108 38 108 42 L118 108 C118.5 113 115 117 110 117 L50 117 C45 117 41.5 113 42 108 Z" fill="url(#abBagGrad)" stroke="#b45309" stroke-width="1.5" />
+
+  <!-- Bag Handles -->
+  <path d="M68 36 C68 22 92 22 92 36" fill="none" stroke="#78350f" stroke-width="5" stroke-linecap="round" />
+  <path d="M72 36 C72 26 88 26 88 36" fill="none" stroke="#fbbf24" stroke-width="3.5" stroke-linecap="round" />
+
+  <!-- Inner Shimmer -->
+  <path d="M58 44 L102 44 L110 102 C100 108 60 108 50 102 Z" fill="url(#abBagInner)" />
+
+  <!-- Magnifying Glass Rim -->
+  <circle cx="76" cy="76" r="34" fill="url(#abLensLight)" stroke="url(#abMagRim)" stroke-width="8.5" />
+  <circle cx="76" cy="76" r="29.5" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.4" />
+
+  <!-- Letter A -->
+  <g fill="url(#abLetterA)">
+    <path d="M76 52 L62 98 L70 98 L73.5 86 L78.5 86 L82 98 L90 98 L76 52 Z M76 65 L77.5 80 L74.5 80 Z" />
+    <path d="M76 52 L76 65 L77.5 80 L82 80 L80 72 Z" fill="#0284c7" fill-opacity="0.3" />
+  </g>
+
+  <!-- Magnifying Glass Handle -->
+  <path d="M100 100 L120 120" stroke="url(#abMagRim)" stroke-width="10" stroke-linecap="round" />
+  <path d="M112 112 L120 120" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-opacity="0.8" />
+
+  <!-- Light Sparkle -->
+  <path d="M58 60 A24 24 0 0 1 76 54" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.7" />
+</svg>
