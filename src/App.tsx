@@ -21,6 +21,8 @@ const STORAGE_KEY_PRODUCTS = 'amader_bazar_products_v3';
 const STORAGE_KEY_SETTINGS = 'amader_bazar_settings_v3';
 const STORAGE_KEY_CURRENT_USER = 'amader_bazar_current_user_v1';
 const STORAGE_KEY_ORDERS = 'amader_bazar_orders_v2';
+const STORAGE_KEY_CART = 'amader_bazar_cart_v1';
+const STORAGE_KEY_WISHLIST = 'amader_bazar_wishlist_v1';
 
 export default function App() {
   // Load products with persistence
@@ -107,14 +109,52 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'featured' | 'price-low' | 'price-high' | 'rating'>('featured');
 
-  // Initial cart with items
-  const [cart, setCart] = useState<CartItem[]>(() => [
-    { product: products[0] || INITIAL_PRODUCTS[0], quantity: 1 },
-    { product: products[1] || INITIAL_PRODUCTS[1], quantity: 1 },
-    { product: products[2] || INITIAL_PRODUCTS[2], quantity: 1 },
-  ]);
+  // Cart state with persistence (defaults to empty)
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CART);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load saved cart:', e);
+    }
+    return [];
+  });
 
-  const [wishlist, setWishlist] = useState<string[]>([products[3]?.id || 'prod-4']);
+  // Wishlist state with persistence (defaults to empty)
+  const [wishlist, setWishlist] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_WISHLIST);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load saved wishlist:', e);
+    }
+    return [];
+  });
+
+  // Save cart to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_CART, JSON.stringify(cart));
+    } catch (e) {
+      console.error('Failed to save cart:', e);
+    }
+  }, [cart]);
+
+  // Save wishlist to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_WISHLIST, JSON.stringify(wishlist));
+    } catch (e) {
+      console.error('Failed to save wishlist:', e);
+    }
+  }, [wishlist]);
+
   const [orders, setOrders] = useState<Order[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_ORDERS);

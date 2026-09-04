@@ -52,9 +52,9 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
           {items.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <Heart className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-800">Your wishlist is empty</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Save products you love by clicking the heart icon on any card!
+              <h3 className="text-base font-bold text-slate-800">আপনার উইশলিস্ট খালি আছে</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                পছন্দের প্রোডাক্টের হার্ট (❤️) আইকনে ক্লিক করে পরবর্তীতে কেনার জন্য সংরক্ষণ করে রাখুন!
               </p>
             </div>
           ) : (
