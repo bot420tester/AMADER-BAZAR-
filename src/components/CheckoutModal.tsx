@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, Truck, CreditCard, Banknote, Smartphone, ArrowRight, Tag, ShieldCheck, FileText } from 'lucide-react';
+import { X, CheckCircle2, Truck, CreditCard, Banknote, Smartphone, ArrowRight, Tag, ShieldCheck, FileText, ShoppingBag, Eye } from 'lucide-react';
 import { CartItem, Order, DeliveryLocation, StoreSettings, CustomerUser } from '../types';
 import { DEFAULT_STORE_SETTINGS } from '../data/mockData';
 import { sendOrderNotificationEmail } from '../services/emailService';
@@ -12,6 +12,7 @@ interface CheckoutModalProps {
   currency?: 'BDT' | 'USD';
   storeSettings?: StoreSettings;
   currentUser?: CustomerUser | null;
+  onTrackOrder?: (order: Order) => void;
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -21,6 +22,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onOrderSuccess,
   storeSettings,
   currentUser,
+  onTrackOrder,
 }) => {
   const currentSettings = storeSettings || DEFAULT_STORE_SETTINGS;
 
@@ -40,6 +42,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash' | 'card' | 'nagad'>('cod');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+
+  // Whenever modal opens or closes, reset completedOrder so subsequent orders can be placed
+  useEffect(() => {
+    if (!isOpen) {
+      setCompletedOrder(null);
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setCompletedOrder(null);
+    setIsSubmitting(false);
+    onClose();
+  };
 
   useEffect(() => {
     if (currentUser) {
@@ -141,7 +157,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        onClick={completedOrder ? undefined : onClose}
+        onClick={handleClose}
         className="fixed inset-0 bg-slate-900/65 backdrop-blur-xs transition-opacity"
       />
 
@@ -155,23 +171,22 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
               {completedOrder
-                ? 'আপনার অর্ডারটি প্রক্রিয়াধীন রয়েছে'
+                ? 'আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে'
                 : 'আপনার তথ্য প্রদান করে অর্ডার কনফার্ম করুন'}
             </p>
           </div>
-          {!completedOrder && (
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={handleClose}
+            className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            title="বন্ধ করুন"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* ORDER SUCCESS SCREEN */}
         {completedOrder ? (
-          <div className="p-8 text-center space-y-6">
+          <div className="p-6 sm:p-8 text-center space-y-5 max-h-[80vh] overflow-y-auto">
             <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
               <CheckCircle2 className="w-12 h-12" />
             </div>
@@ -188,7 +203,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </p>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left text-xs space-y-2 text-slate-700">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left text-xs space-y-2.5 text-slate-700">
               <div className="flex justify-between font-semibold">
                 <span>গ্রাহকের নাম:</span>
                 <span>{completedOrder.shippingAddress.fullName}</span>
@@ -205,6 +220,34 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <span>পেমেন্ট মেথড:</span>
                 <span className="uppercase font-bold text-slate-900">{completedOrder.paymentMethod}</span>
               </div>
+
+              {/* Items in this completed order */}
+              {completedOrder.items && completedOrder.items.length > 0 && (
+                <div className="pt-2 border-t border-slate-200 space-y-1.5">
+                  <span className="font-bold text-slate-900 block text-[11.5px]">অর্ডারকৃত পণ্যসমূহ:</span>
+                  <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                    {completedOrder.items.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-slate-200/80">
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          className="w-8 h-8 object-contain rounded bg-slate-50 shrink-0"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80';
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-slate-800 text-[11px] truncate">{item.product.name}</p>
+                          <p className="text-slate-500 text-[10px]">{item.quantity}টি × ৳{item.product.price.toLocaleString()}</p>
+                        </div>
+                        <span className="font-bold text-slate-900 text-[11px] shrink-0">৳{(item.quantity * item.product.price).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {completedOrder.customerNote && (
                 <div className="flex flex-col gap-0.5 p-2 bg-amber-50/90 rounded-lg border border-amber-200 text-slate-800">
                   <span className="font-bold text-amber-900 flex items-center gap-1">
@@ -220,14 +263,50 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
               <button
-                onClick={onClose}
-                className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl shadow cursor-pointer transition-all text-sm"
+                type="button"
+                onClick={handleClose}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl shadow cursor-pointer transition-all text-sm flex items-center justify-center gap-1.5"
               >
-                কেনাকাটা চালিয়ে যান
+                <ShoppingBag className="w-4 h-4" />
+                <span>আরও কেনাকাটা করুন / নতুন অর্ডার</span>
               </button>
+              {onTrackOrder && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const orderToTrack = completedOrder;
+                    handleClose();
+                    onTrackOrder(orderToTrack);
+                  }}
+                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Eye className="w-4 h-4 text-slate-600" />
+                  <span>অর্ডার ট্র্যাক করুন</span>
+                </button>
+              )}
             </div>
+          </div>
+        ) : items.length === 0 ? (
+          /* Empty Cart State */
+          <div className="p-8 text-center space-y-4">
+            <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <ShoppingBag className="w-8 h-8" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-slate-900">আপনার কার্ট বর্তমানে খালি আছে</h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                নতুন অর্ডার করার জন্য অনুগ্রহ করে আপনার পছন্দের পণ্যটি প্রথমে কার্টে যুক্ত করুন।
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow cursor-pointer"
+            >
+              কেনাকাটা শুরু করুন
+            </button>
           </div>
         ) : (
           /* CHECKOUT FORM */

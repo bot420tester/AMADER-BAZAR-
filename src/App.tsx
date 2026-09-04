@@ -595,14 +595,22 @@ export default function App() {
         storeSettings={storeSettings}
       />
 
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        items={cart}
-        onOrderSuccess={handleOrderSuccess}
-        storeSettings={storeSettings}
-        currentUser={currentUser}
-      />
+      {isCheckoutOpen && (
+        <CheckoutModal
+          key={`checkout-modal-${orders.length}`}
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          items={cart}
+          onOrderSuccess={handleOrderSuccess}
+          storeSettings={storeSettings}
+          currentUser={currentUser}
+          onTrackOrder={(order) => {
+            setIsCheckoutOpen(false);
+            setSelectedTrackOrder(order);
+            setIsTrackOrderOpen(true);
+          }}
+        />
+      )}
 
       <ProductQuickView
         product={quickViewProduct}
