@@ -43,6 +43,33 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'new', label: 'New Arrivals' },
   ];
 
+  // Secret triple-tap / 3-click on logo to open Admin Control Center Login
+  const logoClickCountRef = React.useRef(0);
+  const logoLastClickTimeRef = React.useRef(0);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const now = Date.now();
+    // If more than 1200ms elapsed since previous click, restart counter
+    if (now - logoLastClickTimeRef.current > 1200) {
+      logoClickCountRef.current = 1;
+    } else {
+      logoClickCountRef.current += 1;
+    }
+    logoLastClickTimeRef.current = now;
+
+    // When clicked 3 times in quick succession: open Admin Control Center
+    if (logoClickCountRef.current >= 3) {
+      logoClickCountRef.current = 0;
+      onOpenAdmin();
+    } else {
+      // Normal single/double click: navigate home & reset filters
+      onSelectCategory('all');
+      onSearchChange('');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full shadow-lg">
       {/* 0. Top Delivery Offer & Announcement Strip */}
@@ -77,12 +104,12 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="bg-[#07172b] border-b border-slate-800/80 px-4 lg:px-8 py-3 text-white">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 md:gap-6">
           
-          {/* Logo Section with Official Business Vector Logo - Clicking Logo opens Control Center */}
+          {/* Logo Section with Official Business Vector Logo - Triple Click Opens Admin Login */}
           <div className="flex items-center justify-between w-full md:w-auto">
             <button
               id="logo-brand-btn"
-              onClick={onOpenAdmin}
-              className="flex items-center gap-2.5 sm:gap-3 text-left group focus:outline-none cursor-pointer"
+              onClick={handleLogoClick}
+              className="flex items-center gap-2.5 sm:gap-3 text-left group focus:outline-none cursor-pointer select-none"
               title={storeSettings.storeName}
             >
               {/* Official Business Logo Icon */}

@@ -16,6 +16,15 @@ import { ToastContainer, ToastMessage } from './components/Toast';
 import { PRODUCTS as INITIAL_PRODUCTS, DEFAULT_STORE_SETTINGS, MOCK_ORDERS } from './data/mockData';
 import { Product, CartItem, Order, StoreSettings, CustomerUser } from './types';
 import { Flame, Sparkles, Filter, SlidersHorizontal, Truck, Zap } from 'lucide-react';
+import { testConnection } from './services/firebase';
+import {
+  initFirestoreSync,
+  saveProductToFirestore,
+  deleteProductFromFirestore,
+  saveOrderToFirestore,
+  updateOrderInFirestore,
+  saveStoreSettingsToFirestore,
+} from './services/firestoreService';
 
 const STORAGE_KEY_PRODUCTS = 'amader_bazar_products_v3';
 const STORAGE_KEY_SETTINGS = 'amader_bazar_settings_v3';
@@ -176,6 +185,34 @@ export default function App() {
     }
   }, [orders]);
 
+  // Real-time Cloud Database Synchronization across all devices
+  useEffect(() => {
+    testConnection();
+
+    const unsubscribe = initFirestoreSync({
+      initialLocalProducts: products,
+      onProducts: (remoteProducts) => {
+        if (remoteProducts && remoteProducts.length > 0) {
+          setProducts(remoteProducts);
+        }
+      },
+      onOrders: (remoteOrders) => {
+        if (remoteOrders && remoteOrders.length > 0) {
+          setOrders(remoteOrders);
+        }
+      },
+      onSettings: (remoteSettings) => {
+        if (remoteSettings && remoteSettings.storeName) {
+          setStoreSettings(remoteSettings);
+        }
+      },
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   // Modals & Panels
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -215,7 +252,10 @@ export default function App() {
   // Product CRUD (Admin Only)
   const handleAddProduct = (newProduct: Product) => {
     setProducts((prev) => [newProduct, ...prev]);
-    addToast('info', 'প্রোডাক্ট যুক্ত হয়েছে', `"${newProduct.name}" ক্যাটালগে যুক্ত করা হয়েছে।`);
+    saveProductToFirestore(newProduct).catch((err) => {
+      console.error('Failed to sync new product to Firestore:', err);
+    });
+    addToast('info', 'প্রোডাক্ট যুক্ত হয়েছে', `"${newProduct.name}" ক্লাউড ডাটাবেজে যুক্ত হয়েছে এবং সব ডিভাইসে লাইভ হয়েছে।`);
   };
 
   const handleUpdateProduct = (updated: Product) => {
@@ -225,19 +265,28 @@ export default function App() {
         item.product.id === updated.id ? { ...item, product: updated } : item
       )
     );
-    addToast('info', 'প্রোডাক্ট আপডেট হয়েছে', `"${updated.name}" এর তথ্য সফলভাবে সংরক্ষিত হয়েছে।`);
+    saveProductToFirestore(updated).catch((err) => {
+      console.error('Failed to sync updated product to Firestore:', err);
+    });
+    addToast('info', 'প্রোডাক্ট আপডেট হয়েছে', `"${updated.name}" এর তথ্য সফলভাবে ক্লাউডে সংরক্ষিত হয়েছে।`);
   };
 
   const handleDeleteProduct = (productId: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== productId));
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
     setWishlist((prev) => prev.filter((id) => id !== productId));
-    addToast('info', 'প্রোডাক্ট মুছে ফেলা হয়েছে', 'আইটেমটি সফলভাবে ক্যাটালগ থেকে বাদ দেওয়া হয়েছে।');
+    deleteProductFromFirestore(productId).catch((err) => {
+      console.error('Failed to delete product from Firestore:', err);
+    });
+    addToast('info', 'প্রোডাক্ট মুছে ফেলা হয়েছে', 'আইটেমটি ক্লাউড ক্যাটালগ থেকে বাদ দেওয়া হয়েছে।');
   };
 
   const handleUpdateStoreSettings = (newSettings: StoreSettings) => {
     setStoreSettings(newSettings);
-    addToast('info', 'সেটিংস আপডেট হয়েছে', 'স্টোরের নতুন তথ্য ও ডেলিভারি চার্জ সংরক্ষণ করা হয়েছে।');
+    saveStoreSettingsToFirestore(newSettings).catch((err) => {
+      console.error('Failed to sync store settings to Firestore:', err);
+    });
+    addToast('info', 'সেটিংস আপডেট হয়েছে', 'স্টোরের নতুন তথ্য ক্লাউডে সংরক্ষণ করা হয়েছে।');
   };
 
   const handleResetToDefault = () => {
@@ -245,6 +294,11 @@ export default function App() {
     setStoreSettings(DEFAULT_STORE_SETTINGS);
     localStorage.removeItem(STORAGE_KEY_PRODUCTS);
     localStorage.removeItem(STORAGE_KEY_SETTINGS);
+    // Also re-seed to Firestore
+    for (const p of INITIAL_PRODUCTS) {
+      saveProductToFirestore(p).catch((err) => console.error(err));
+    }
+    saveStoreSettingsToFirestore(DEFAULT_STORE_SETTINGS).catch((err) => console.error(err));
     addToast('info', 'রিসেট সফল', 'স্টোর ডিফল্ট অবস্থায় রিসেট হয়েছে।');
   };
 
@@ -311,6 +365,9 @@ export default function App() {
   const handleOrderSuccess = (newOrder: Order) => {
     setOrders((prev) => [newOrder, ...prev]);
     setCart([]);
+    saveOrderToFirestore(newOrder).catch((err) => {
+      console.error('Failed to sync new order to Firestore:', err);
+    });
     addToast('info', 'অর্ডার সফলভাবে সম্পন্ন হয়েছে!', `অর্ডার #${newOrder.orderId} কনফার্ম হয়েছে।`);
   };
 
@@ -318,6 +375,9 @@ export default function App() {
     setOrders((prev) =>
       prev.map((order) => (order.orderId === updatedOrder.orderId ? updatedOrder : order))
     );
+    updateOrderInFirestore(updatedOrder).catch((err) => {
+      console.error('Failed to sync updated order to Firestore:', err);
+    });
     addToast('info', 'অর্ডার আপডেট', `অর্ডার #${updatedOrder.orderId} এর ট্র্যাকিং সফলভাবে আপডেট হয়েছে।`);
   };
 
@@ -337,12 +397,16 @@ export default function App() {
             completed: true,
             current: true,
           };
-          return {
+          const cancelledOrder = {
             ...order,
             status: 'Cancelled' as const,
             cancelReason: reason,
             timeline: [...order.timeline.map((s) => ({ ...s, current: false })), cancelTimelineItem],
           };
+          updateOrderInFirestore(cancelledOrder).catch((err) => {
+            console.error('Failed to sync cancelled order to Firestore:', err);
+          });
+          return cancelledOrder;
         }
         return order;
       })

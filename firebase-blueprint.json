@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "An e-commerce product available in the store catalog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "originalPrice": { "type": "number" },
+        "rating": { "type": "number" },
+        "reviewsCount": { "type": "number" },
+        "image": { "type": "string" },
+        "images": { "type": "array" },
+        "badge": { "type": "string" },
+        "inStock": { "type": "boolean" },
+        "stockCount": { "type": "number" },
+        "isPreorder": { "type": "boolean" },
+        "category": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "image", "inStock"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order submitted through checkout",
+      "type": "object",
+      "properties": {
+        "orderId": { "type": "string" },
+        "trackingId": { "type": "string" },
+        "date": { "type": "string" },
+        "total": { "type": "number" },
+        "subtotal": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["orderId", "trackingId", "date", "total", "status"]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Store-wide configuration, delivery charges and contact details",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string" },
+        "insideDhakaFee": { "type": "number" },
+        "outsideDhakaFee": { "type": "number" }
+      },
+      "required": ["storeName"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Products available in the store catalog visible to all users and devices"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders placed by customers and managed by store administrators"
+    },
+    "/settings/{settingId}": {
+      "schema": "StoreSettings",
+      "description": "Store configuration and policies"
+    }
+  }
+}

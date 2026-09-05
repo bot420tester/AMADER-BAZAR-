@@ -16,6 +16,29 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenAdmin,
   onSelectCategory,
 }) => {
+  // Secret triple-tap / 3-click on logo to open Admin Control Center Login
+  const logoClickCountRef = React.useRef(0);
+  const logoLastClickTimeRef = React.useRef(0);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - logoLastClickTimeRef.current > 1200) {
+      logoClickCountRef.current = 1;
+    } else {
+      logoClickCountRef.current += 1;
+    }
+    logoLastClickTimeRef.current = now;
+
+    if (logoClickCountRef.current >= 3) {
+      logoClickCountRef.current = 0;
+      onOpenAdmin();
+    } else {
+      onSelectCategory('all');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer className="bg-[#040d1a] text-slate-300 border-t border-slate-800/80 pt-12 pb-8 px-4 lg:px-8 mt-12">
       <div className="max-w-7xl mx-auto">
@@ -23,11 +46,11 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Main Footer Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-slate-800/70">
           
-          {/* Col 1: Brand & Bio - Secret click on logo opens Admin */}
+          {/* Col 1: Brand & Bio - Secret triple-click on logo opens Admin */}
           <div className="space-y-4">
             <button
-              onClick={onOpenAdmin}
-              className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none"
+              onClick={handleLogoClick}
+              className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none select-none"
               title={storeSettings.storeName}
             >
               <div className="group-hover:scale-105 transition-transform">

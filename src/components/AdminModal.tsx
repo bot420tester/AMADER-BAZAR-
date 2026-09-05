@@ -86,6 +86,16 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setConfirmAdminPin(storeSettings.adminPin);
   }, [storeSettings.adminPin]);
 
+  // Whenever the admin modal is opened, always show the PIN Login page
+  useEffect(() => {
+    if (isOpen) {
+      setIsAuthenticated(false);
+      setEnteredPin('');
+      setPinError(false);
+      setActiveTab('manage');
+    }
+  }, [isOpen]);
+
   const handleSaveSecurityPin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setPinChangeError('');
