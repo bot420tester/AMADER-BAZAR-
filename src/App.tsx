@@ -23,6 +23,7 @@ import {
   deleteProductFromFirestore,
   saveOrderToFirestore,
   updateOrderInFirestore,
+  deleteOrderFromFirestore,
   saveStoreSettingsToFirestore,
 } from './services/firestoreService';
 
@@ -168,12 +169,15 @@ export default function App() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_ORDERS);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed: Order[] = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((o) => o.orderId !== 'AB-89421');
+        }
       }
     } catch (e) {
       console.error('Failed to load saved orders:', e);
     }
-    return MOCK_ORDERS;
+    return [];
   });
 
   // Save orders to localStorage on change
@@ -189,6 +193,9 @@ export default function App() {
   useEffect(() => {
     testConnection();
 
+    // Clean up any stale dummy mock order from previous runs
+    deleteOrderFromFirestore('AB-89421').catch(() => {});
+
     const unsubscribe = initFirestoreSync({
       initialLocalProducts: products,
       onProducts: (remoteProducts) => {
@@ -197,8 +204,9 @@ export default function App() {
         }
       },
       onOrders: (remoteOrders) => {
-        if (remoteOrders && remoteOrders.length > 0) {
-          setOrders(remoteOrders);
+        if (remoteOrders) {
+          const cleaned = remoteOrders.filter((o) => o.orderId !== 'AB-89421');
+          setOrders(cleaned);
         }
       },
       onSettings: (remoteSettings) => {

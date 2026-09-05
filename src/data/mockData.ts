@@ -42,6 +42,13 @@ export const CATEGORIES: Category[] = [
     iconName: 'Palmtree',
     count: 32,
   },
+  {
+    id: 'others',
+    name: 'অন্যান্য (Others)',
+    subtitle: 'General & Miscellaneous',
+    iconName: 'LayoutGrid',
+    count: 15,
+  },
 ];
 
 export const PRODUCTS: Product[] = [
@@ -328,69 +335,5 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-export const MOCK_ORDERS: Order[] = [
-  {
-    orderId: 'AB-89421',
-    trackingId: 'TRK-9842718BD',
-    date: '2026-08-27',
-    items: [
-      {
-        product: PRODUCTS[0],
-        quantity: 1,
-      },
-      {
-        product: PRODUCTS[2],
-        quantity: 2,
-      },
-    ],
-    subtotal: 4350,
-    deliveryLocation: 'dhaka',
-    deliveryFee: 100,
-    discount: 0,
-    total: 4450,
-    shippingAddress: {
-      fullName: 'Aminul Islam',
-      phone: '+880 1712-345678',
-      address: 'House 42, Road 11, Dhanmondi',
-      city: 'Dhaka',
-      zipCode: '1209',
-      deliveryLocation: 'dhaka',
-    },
-    paymentMethod: 'cod',
-    status: 'In Transit',
-    timeline: [
-      {
-        title: 'Order Confirmed',
-        description: 'Warehouse fulfillment team received and processed the order.',
-        time: 'Aug 27, 09:30 AM',
-        completed: true,
-      },
-      {
-        title: 'Quality Check & Packed',
-        description: 'Items packed in shock-proof international parcel.',
-        time: 'Aug 27, 03:15 PM',
-        completed: true,
-      },
-      {
-        title: 'Dispatched to Transit Hub',
-        description: 'Carrier picked up parcel: Dhaka Hub Hub-882.',
-        time: 'Aug 28, 08:45 AM',
-        completed: true,
-        current: true,
-      },
-      {
-        title: 'Customs Clearance & Local Sorting',
-        description: 'Arrival at destination regional dispatch center.',
-        time: 'Estimated Aug 29',
-        completed: false,
-      },
-      {
-        title: 'Out for Delivery',
-        description: 'Courier agent delivering to customer doorstep.',
-        time: 'Estimated Aug 30',
-        completed: false,
-      },
-    ],
-  },
-];
+export const MOCK_ORDERS: Order[] = [];
 

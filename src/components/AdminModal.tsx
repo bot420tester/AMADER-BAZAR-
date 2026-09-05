@@ -383,6 +383,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           ? 'Cosmetics'
           : newProduct.category === 'home'
           ? 'Home Decor'
+          : newProduct.category === 'others'
+          ? 'অন্যান্য (Others)'
           : newProduct.category,
     };
 
@@ -1051,6 +1053,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           <option value="fashion">Women's Fashion (পোশাক ও ফ্যাশন)</option>
                           <option value="cosmetics">Cosmetics (কসমেটিক্স ও স্কিনকেয়ার)</option>
                           <option value="home">Home Decor (গৃহস্থালি ও ডেকোর)</option>
+                          <option value="others">অন্যান্য (Others)</option>
                         </select>
                       </div>
                     </div>
@@ -1244,6 +1247,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                           <option value="fashion">Women's Fashion (পোশাক ও ফ্যাশন)</option>
                           <option value="cosmetics">Cosmetics (কসমেটিক্স ও স্কিনকেয়ার)</option>
                           <option value="home">Home Decor (গৃহস্থালি ও ডেকোর)</option>
+                          <option value="others">অন্যান্য (Others)</option>
                         </select>
                       </div>
                     </div>

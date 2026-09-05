@@ -3,7 +3,7 @@ export type DeliveryLocation = 'dhaka' | 'outside_dhaka';
 export interface Product {
   id: string;
   name: string;
-  category: 'electronics' | 'fashion' | 'cosmetics' | 'home' | string;
+  category: 'electronics' | 'fashion' | 'cosmetics' | 'home' | 'others' | string;
   categoryLabel: string;
   price: number; // In BDT (৳)
   originalPrice?: number;
@@ -36,7 +36,7 @@ export interface CartItem {
 }
 
 export interface Category {
-  id: 'all' | 'electronics' | 'fashion' | 'cosmetics' | 'home' | 'offers' | 'new';
+  id: 'all' | 'electronics' | 'fashion' | 'cosmetics' | 'home' | 'others' | 'offers' | 'new' | string;
   name: string;
   subtitle: string;
   iconName: string;

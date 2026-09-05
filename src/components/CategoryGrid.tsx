@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smartphone, Shirt, Sparkles, Palmtree, ArrowRight } from 'lucide-react';
+import { Smartphone, Shirt, Sparkles, Palmtree, LayoutGrid, ArrowRight } from 'lucide-react';
 import { CATEGORIES } from '../data/mockData';
 
 interface CategoryGridProps {
@@ -41,6 +41,13 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
         return (
           <div className="relative w-16 h-16 rounded-full bg-[#e0f2f1] text-[#00695c] flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
             <Palmtree className="w-8 h-8 stroke-[1.75]" />
+          </div>
+        );
+      case 'others':
+        return (
+          <div className="relative w-16 h-16 rounded-full bg-[#f3e8ff] text-[#7e22ce] flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+            <LayoutGrid className="w-8 h-8 stroke-[1.75]" />
+            <div className="absolute top-1 right-2 w-2.5 h-2.5 rounded-full bg-purple-500" />
           </div>
         );
       default:

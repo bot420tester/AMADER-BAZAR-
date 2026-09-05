@@ -114,6 +114,14 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
+                  onClick={() => onSelectCategory('others')}
+                  className="hover:text-amber-400 transition-colors cursor-pointer"
+                >
+                  অন্যান্য প্রোডাক্টস (Others)
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onSelectCategory('all')}
                   className="hover:text-amber-400 transition-colors cursor-pointer text-amber-400 font-medium"
                 >

@@ -65,7 +65,7 @@ export const AccountOrdersTab: React.FC<AccountOrdersTabProps> = ({
   // Match orders for the current user by phone or name
   const { matchedOrders, userOrders } = useMemo(() => {
     if (!currentUser) {
-      return { matchedOrders: orders, userOrders: orders };
+      return { matchedOrders: [], userOrders: [] };
     }
 
     const cleanUserPhone = currentUser.phone ? currentUser.phone.replace(/[^0-9]/g, '') : '';
@@ -74,16 +74,19 @@ export const AccountOrdersTab: React.FC<AccountOrdersTabProps> = ({
       const phoneMatch = Boolean(
         cleanUserPhone &&
           orderPhone &&
+          cleanUserPhone.length >= 8 &&
+          orderPhone.length >= 8 &&
           (orderPhone.endsWith(cleanUserPhone.slice(-8)) || cleanUserPhone.endsWith(orderPhone.slice(-8)))
       );
       const nameMatch = Boolean(
         currentUser.fullName &&
-          o.shippingAddress?.fullName?.toLowerCase().trim() === currentUser.fullName.toLowerCase().trim()
+          o.shippingAddress?.fullName &&
+          o.shippingAddress.fullName.toLowerCase().trim() === currentUser.fullName.toLowerCase().trim()
       );
       return phoneMatch || nameMatch;
     });
 
-    const activeList = scopeFilter === 'matched' && matched.length > 0 ? matched : orders;
+    const activeList = scopeFilter === 'matched' ? matched : orders;
     return { matchedOrders: matched, userOrders: activeList };
   }, [orders, currentUser, scopeFilter]);
 

@@ -80,14 +80,7 @@ export function initFirestoreSync({
     async (snapshot) => {
       if (snapshot.empty && !hasSeededOrders) {
         hasSeededOrders = true;
-        // Optionally seed demo orders once
-        for (const ord of MOCK_ORDERS) {
-          try {
-            await setDoc(doc(db, 'orders', ord.orderId), sanitizeForFirestore(ord));
-          } catch (e) {
-            console.error(`Failed to seed order ${ord.orderId}:`, e);
-          }
-        }
+        onOrders([]);
         return;
       }
 
@@ -181,6 +174,19 @@ export async function updateOrderInFirestore(order: Order): Promise<void> {
     console.log(`Order #${order.orderId} updated in Firestore.`);
   } catch (err) {
     console.error(`Error updating order #${order.orderId} in Firestore:`, err);
+    throw err;
+  }
+}
+
+/**
+ * Delete an order from Firestore cloud database
+ */
+export async function deleteOrderFromFirestore(orderId: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, 'orders', orderId));
+    console.log(`Order #${orderId} deleted from Firestore.`);
+  } catch (err) {
+    console.error(`Error deleting order #${orderId} from Firestore:`, err);
     throw err;
   }
 }
