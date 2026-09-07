@@ -41,14 +41,12 @@ export const ProductQuickView: React.FC<ProductQuickViewProps> = ({
   onWriteReview,
   storeSettings,
 }) => {
-  if (!product) return null;
-
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(product.image);
+  const [selectedImage, setSelectedImage] = useState(product?.image || '');
   const [activeTab, setActiveTab] = useState<'details' | 'reviews'>('details');
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
-    product.variants?.forEach((v) => {
+    product?.variants?.forEach((v) => {
       if (v.options.length > 0) initial[v.type] = v.options[0];
     });
     return initial;
@@ -56,23 +54,26 @@ export const ProductQuickView: React.FC<ProductQuickViewProps> = ({
 
   // Fetch verified reviews for this product
   const reviews = useMemo(() => {
-    return getReviewsForProduct(product.id);
-  }, [product.id]);
+    return product ? getReviewsForProduct(product.id) : [];
+  }, [product?.id]);
 
   const averageRating = useMemo(() => {
+    if (!product) return 5;
     if (reviews.length === 0) return product.rating || 5;
     const total = reviews.reduce((sum, r) => sum + r.rating, 0);
     return (total / reviews.length).toFixed(1);
-  }, [reviews, product.rating]);
+  }, [reviews, product?.rating]);
 
   // Check review eligibility for current user
   const eligibility = useMemo(() => {
-    return checkReviewEligibility(currentUser, product.id, orders);
-  }, [currentUser, product.id, orders]);
+    return product ? checkReviewEligibility(currentUser, product.id, orders) : { eligible: false, message: '' };
+  }, [currentUser, product?.id, orders]);
 
   const formatPrice = (amount: number) => {
     return `৳ ${amount.toLocaleString()}`;
   };
+
+  if (!product) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">

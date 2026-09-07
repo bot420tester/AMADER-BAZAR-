@@ -693,17 +693,19 @@ export default function App() {
         />
       )}
 
-      <ProductQuickView
-        product={quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-        onAddToCart={handleAddToCart}
-        onToggleWishlist={handleToggleWishlist}
-        isWishlisted={Boolean(quickViewProduct && wishlist.includes(quickViewProduct.id))}
-        currentUser={currentUser}
-        orders={orders}
-        onWriteReview={handleOpenReview}
-        storeSettings={storeSettings}
-      />
+      {quickViewProduct && (
+        <ProductQuickView
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+          onAddToCart={handleAddToCart}
+          onToggleWishlist={handleToggleWishlist}
+          isWishlisted={Boolean(quickViewProduct && wishlist.includes(quickViewProduct.id))}
+          currentUser={currentUser}
+          orders={orders}
+          onWriteReview={handleOpenReview}
+          storeSettings={storeSettings}
+        />
+      )}
 
       <OrderTrackingModal
         isOpen={isTrackOrderOpen}
@@ -723,24 +725,26 @@ export default function App() {
         onAddToCart={handleAddToCart}
       />
 
-      <AccountModal
-        isOpen={isAccountOpen}
-        onClose={() => setIsAccountOpen(false)}
-        currentUser={currentUser}
-        onLogin={handleLogin}
-        onLogout={handleLogout}
-        onUpdateUser={handleUpdateUser}
-        orders={orders}
-        onTrackOrder={(order) => {
-          setSelectedTrackOrder(order);
-          setIsTrackOrderOpen(true);
-        }}
-        onOpenShop={() => {
-          const el = document.getElementById('products-section');
-          el?.scrollIntoView({ behavior: 'smooth' });
-        }}
-        onWriteReview={handleOpenReview}
-      />
+      {isAccountOpen && (
+        <AccountModal
+          isOpen={isAccountOpen}
+          onClose={() => setIsAccountOpen(false)}
+          currentUser={currentUser}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
+          onUpdateUser={handleUpdateUser}
+          orders={orders}
+          onTrackOrder={(order) => {
+            setSelectedTrackOrder(order);
+            setIsTrackOrderOpen(true);
+          }}
+          onOpenShop={() => {
+            const el = document.getElementById('products-section');
+            el?.scrollIntoView({ behavior: 'smooth' });
+          }}
+          onWriteReview={handleOpenReview}
+        />
+      )}
 
       {/* Verified Customer Product Review Modal */}
       <ReviewModal

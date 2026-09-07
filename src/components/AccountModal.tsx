@@ -161,6 +161,28 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     reader.readAsDataURL(file);
   };
 
+  // Filter user specific orders strictly for currentUser (no default pending delivery)
+  const userOrders = useMemo(() => {
+    if (!currentUser) return [];
+    const cleanUserPhone = currentUser.phone ? currentUser.phone.replace(/[^0-9]/g, '') : '';
+    return orders.filter((o) => {
+      const orderPhone = o.shippingAddress?.phone ? o.shippingAddress.phone.replace(/[^0-9]/g, '') : '';
+      const phoneMatch = Boolean(
+        cleanUserPhone &&
+          orderPhone &&
+          cleanUserPhone.length >= 8 &&
+          orderPhone.length >= 8 &&
+          (orderPhone.endsWith(cleanUserPhone.slice(-8)) || cleanUserPhone.endsWith(orderPhone.slice(-8)))
+      );
+      const nameMatch = Boolean(
+        currentUser.fullName &&
+          o.shippingAddress?.fullName &&
+          o.shippingAddress.fullName.toLowerCase().trim() === currentUser.fullName.toLowerCase().trim()
+      );
+      return phoneMatch || nameMatch;
+    });
+  }, [orders, currentUser]);
+
   if (!isOpen) return null;
 
   // Helper to generate a random 4-digit OTP code
@@ -407,27 +429,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     setTimeout(() => setAuthSuccess(''), 2500);
   };
 
-  // Filter user specific orders strictly for currentUser (no default pending delivery)
-  const userOrders = useMemo(() => {
-    if (!currentUser) return [];
-    const cleanUserPhone = currentUser.phone ? currentUser.phone.replace(/[^0-9]/g, '') : '';
-    return orders.filter((o) => {
-      const orderPhone = o.shippingAddress?.phone ? o.shippingAddress.phone.replace(/[^0-9]/g, '') : '';
-      const phoneMatch = Boolean(
-        cleanUserPhone &&
-          orderPhone &&
-          cleanUserPhone.length >= 8 &&
-          orderPhone.length >= 8 &&
-          (orderPhone.endsWith(cleanUserPhone.slice(-8)) || cleanUserPhone.endsWith(orderPhone.slice(-8)))
-      );
-      const nameMatch = Boolean(
-        currentUser.fullName &&
-          o.shippingAddress?.fullName &&
-          o.shippingAddress.fullName.toLowerCase().trim() === currentUser.fullName.toLowerCase().trim()
-      );
-      return phoneMatch || nameMatch;
-    });
-  }, [orders, currentUser]);
   const activeAvatar = profileForm.avatar || currentUser?.avatar;
 
   return (
