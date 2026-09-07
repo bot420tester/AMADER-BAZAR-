@@ -22,10 +22,10 @@ export const Footer: React.FC<FooterProps> = ({
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const now = Date.now();
-    // Keep clicks from the last 1500ms
-    clickTimesRef.current = [...clickTimesRef.current.filter((t) => now - t < 1500), now];
+    // Keep clicks from the last 2500ms
+    clickTimesRef.current = [...clickTimesRef.current.filter((t) => now - t < 2500), now];
 
-    // When clicked 3 times within 1.5 seconds: open Admin Control Center
+    // When clicked 3 times within 2.5 seconds: open Admin Control Center
     if (clickTimesRef.current.length >= 3) {
       clickTimesRef.current = [];
       onOpenAdmin();
@@ -46,7 +46,7 @@ export const Footer: React.FC<FooterProps> = ({
           <div className="space-y-4">
             <button
               onClick={handleLogoClick}
-              className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none select-none"
+              className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none select-none touch-manipulation"
               title={storeSettings.storeName}
             >
               <div className="group-hover:scale-105 transition-transform">

@@ -172,6 +172,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [newProductImageUrl, setNewProductImageUrl] = useState('');
   const [editProductImageUrl, setEditProductImageUrl] = useState('');
   const [newFeatureText, setNewFeatureText] = useState('');
+  const [isProcessingImages, setIsProcessingImages] = useState(false);
 
   // Store Settings Form State
   const [tempSettings, setTempSettings] = useState<StoreSettings>(storeSettings);
@@ -200,8 +201,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setSuccessMessage(msg);
     setTimeout(() => setSuccessMessage(''), 3000);
   };
-
-  const [isProcessingImages, setIsProcessingImages] = useState(false);
 
   // Multiple Image Upload helpers (automatically compresses files to lightweight optimized DataURLs)
   const handleMultipleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {

@@ -758,21 +758,23 @@ export default function App() {
         }}
       />
 
-      {/* Admin Management Modal with PIN Protection - Accessed via Logo */}
-      <AdminModal
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        products={products}
-        onAddProduct={handleAddProduct}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
-        storeSettings={storeSettings}
-        onUpdateStoreSettings={handleUpdateStoreSettings}
-        onResetToDefault={handleResetToDefault}
-        orders={orders}
-        onUpdateOrder={handleUpdateOrder}
-        onCancelOrder={handleCancelOrder}
-      />
+      {/* Admin Management Modal with PIN Protection */}
+      {isAdminOpen && (
+        <AdminModal
+          isOpen={isAdminOpen}
+          onClose={() => setIsAdminOpen(false)}
+          products={products}
+          onAddProduct={handleAddProduct}
+          onUpdateProduct={handleUpdateProduct}
+          onDeleteProduct={handleDeleteProduct}
+          storeSettings={storeSettings}
+          onUpdateStoreSettings={handleUpdateStoreSettings}
+          onResetToDefault={handleResetToDefault}
+          orders={orders}
+          onUpdateOrder={handleUpdateOrder}
+          onCancelOrder={handleCancelOrder}
+        />
+      )}
 
       <ToastContainer toasts={toasts} onDismiss={removeToast} />
 

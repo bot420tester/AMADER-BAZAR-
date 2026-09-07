@@ -50,10 +50,10 @@ export const Header: React.FC<HeaderProps> = ({
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const now = Date.now();
-    // Keep clicks from the last 1500ms
-    clickTimesRef.current = [...clickTimesRef.current.filter((t) => now - t < 1500), now];
+    // Keep clicks from the last 2500ms
+    clickTimesRef.current = [...clickTimesRef.current.filter((t) => now - t < 2500), now];
 
-    // When clicked 3 times within 1.5 seconds: open Admin Control Center
+    // When clicked 3 times within 2.5 seconds: open Admin Control Center
     if (clickTimesRef.current.length >= 3) {
       clickTimesRef.current = [];
       onOpenAdmin();
@@ -72,12 +72,12 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 overflow-hidden text-ellipsis whitespace-nowrap">
             <Truck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span className="font-semibold text-slate-200">
+            <span className="font-semibold text-slate-200 truncate">
               {storeSettings.announcement}
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-[11px] text-amber-400/90 font-medium">
+          <div className="flex items-center gap-3 text-[11px] text-amber-400/90 font-medium shrink-0">
             <button
               onClick={onOpenTrackOrder}
               className="hover:text-amber-300 transition-colors cursor-pointer hidden sm:flex items-center gap-1"
@@ -104,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="logo-brand-btn"
               onClick={handleLogoClick}
-              className="flex items-center gap-2.5 sm:gap-3 text-left group focus:outline-none cursor-pointer select-none"
+              className="flex items-center gap-2.5 sm:gap-3 text-left group focus:outline-none cursor-pointer select-none touch-manipulation"
               title={storeSettings.storeName}
             >
               {/* Official Business Logo Icon */}
