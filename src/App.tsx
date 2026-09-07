@@ -258,25 +258,34 @@ export default function App() {
   };
 
   // Product CRUD (Admin Only)
-  const handleAddProduct = (newProduct: Product) => {
-    setProducts((prev) => [newProduct, ...prev]);
-    saveProductToFirestore(newProduct).catch((err) => {
+  const handleAddProduct = async (newProduct: Product) => {
+    setProducts((prev) => [newProduct, ...prev.filter((p) => p.id !== newProduct.id)]);
+    try {
+      await saveProductToFirestore(newProduct);
+      addToast('info', 'প্রোডাক্ট যুক্ত হয়েছে', `"${newProduct.name}" ক্লাউড ডাটাবেজে যুক্ত হয়েছে এবং সব ডিভাইসে লাইভ হয়েছে।`);
+    } catch (err: any) {
       console.error('Failed to sync new product to Firestore:', err);
-    });
-    addToast('info', 'প্রোডাক্ট যুক্ত হয়েছে', `"${newProduct.name}" ক্লাউড ডাটাবেজে যুক্ত হয়েছে এবং সব ডিভাইসে লাইভ হয়েছে।`);
+      setProducts((prev) => prev.filter((p) => p.id !== newProduct.id));
+      addToast('info', 'প্রোডাক্ট যুক্ত করা যায়নি', `ডাটাবেজে সংরক্ষণ করা সম্ভব হয়নি: ${err?.message || 'সমস্যা হয়েছে'}`);
+    }
   };
 
-  const handleUpdateProduct = (updated: Product) => {
+  const handleUpdateProduct = async (updated: Product) => {
+    const prevProducts = [...products];
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     setCart((prev) =>
       prev.map((item) =>
         item.product.id === updated.id ? { ...item, product: updated } : item
       )
     );
-    saveProductToFirestore(updated).catch((err) => {
+    try {
+      await saveProductToFirestore(updated);
+      addToast('info', 'প্রোডাক্ট আপডেট হয়েছে', `"${updated.name}" এর তথ্য সফলভাবে ক্লাউডে সংরক্ষিত হয়েছে।`);
+    } catch (err: any) {
       console.error('Failed to sync updated product to Firestore:', err);
-    });
-    addToast('info', 'প্রোডাক্ট আপডেট হয়েছে', `"${updated.name}" এর তথ্য সফলভাবে ক্লাউডে সংরক্ষিত হয়েছে।`);
+      setProducts(prevProducts);
+      addToast('info', 'আপডেট ব্যর্থ হয়েছে', `তথ্য সংরক্ষণ করা সম্ভব হয়নি: ${err?.message || 'সমস্যা হয়েছে'}`);
+    }
   };
 
   const handleDeleteProduct = (productId: string) => {

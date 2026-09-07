@@ -10,11 +10,32 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Product, Order, StoreSettings } from '../types';
-import { PRODUCTS, DEFAULT_STORE_SETTINGS, MOCK_ORDERS } from '../data/mockData';
+import { PRODUCTS, DEFAULT_STORE_SETTINGS } from '../data/mockData';
+import { compressBase64Image, sanitizeProductGallery } from '../utils/imageCompressor';
 
 // Helper to sanitize data so Firestore doesn't error on `undefined` fields
 function sanitizeForFirestore<T extends Record<string, any>>(data: T): any {
   return JSON.parse(JSON.stringify(data));
+}
+
+// Helper to sort products so newly added timestamped items stay at the top
+export function sortProducts(productList: Product[]): Product[] {
+  return [...productList].sort((a, b) => {
+    const timeA = a.id.startsWith('prod-') ? Number(a.id.replace('prod-', '')) : 0;
+    const timeB = b.id.startsWith('prod-') ? Number(b.id.replace('prod-', '')) : 0;
+
+    // Both are timestamps (e.g. prod-1788610826212)
+    if (timeA > 1_000_000_000 && timeB > 1_000_000_000) {
+      return timeB - timeA; // newest first
+    }
+    // A is newly added timestamp product, B is catalog product
+    if (timeA > 1_000_000_000) return -1;
+    // B is newly added timestamp product, A is catalog product
+    if (timeB > 1_000_000_000) return 1;
+
+    // Default numeric sort for catalog products (prod-1, prod-2, etc.)
+    return timeA - timeB;
+  });
 }
 
 /**
@@ -63,7 +84,9 @@ export function initFirestoreSync({
       });
 
       if (products.length > 0) {
-        onProducts(products);
+        // Sort products cleanly so new creations are prominent at top
+        const sorted = sortProducts(products);
+        onProducts(sorted);
       }
     },
     (err) => {
@@ -127,12 +150,55 @@ export function initFirestoreSync({
 }
 
 /**
- * Save / Update a product in Firestore cloud database
+ * Save / Update a product in Firestore cloud database with automatic image compression
+ * and size guard to never exceed Firestore's 1MB limit.
  */
 export async function saveProductToFirestore(product: Product): Promise<void> {
   try {
-    await setDoc(doc(db, 'products', product.id), sanitizeForFirestore(product));
-    console.log(`Product ${product.id} synced to Firestore.`);
+    // 1. Sanitize gallery and primary image
+    const { image: cleanImage, galleryImages: cleanGallery } = sanitizeProductGallery(
+      product.image,
+      product.galleryImages
+    );
+
+    // 2. Automatically compress large base64 images if needed
+    let optimizedImage = cleanImage;
+    if (optimizedImage && optimizedImage.startsWith('data:image/') && optimizedImage.length > 80_000) {
+      optimizedImage = await compressBase64Image(optimizedImage, { maxWidth: 900, maxHeight: 900, quality: 0.75 });
+    }
+
+    let optimizedGallery: string[] = [];
+    if (cleanGallery && cleanGallery.length > 0) {
+      optimizedGallery = await Promise.all(
+        cleanGallery.map(async (img) => {
+          if (img && img.startsWith('data:image/') && img.length > 80_000) {
+            return await compressBase64Image(img, { maxWidth: 900, maxHeight: 900, quality: 0.75 });
+          }
+          return img;
+        })
+      );
+    }
+
+    const preparedProduct: Product = {
+      ...product,
+      image: optimizedImage,
+      galleryImages: optimizedGallery.length > 0 ? optimizedGallery : (optimizedImage ? [optimizedImage] : []),
+    };
+
+    const payload = sanitizeForFirestore(preparedProduct);
+    const jsonLength = JSON.stringify(payload).length;
+
+    // Strict guard: Firestore maximum document size is 1,048,576 bytes
+    if (jsonLength > 850_000) {
+      console.warn(`Product ${product.id} payload is large (${jsonLength} bytes). Optimizing gallery to ensure safe Firestore write.`);
+      preparedProduct.galleryImages = [optimizedImage];
+      const trimmedPayload = sanitizeForFirestore(preparedProduct);
+      await setDoc(doc(db, 'products', product.id), trimmedPayload);
+    } else {
+      await setDoc(doc(db, 'products', product.id), payload);
+    }
+
+    console.log(`Product ${product.id} successfully synced to Firestore (${jsonLength} bytes).`);
   } catch (err) {
     console.error(`Error saving product ${product.id} to Firestore:`, err);
     throw err;

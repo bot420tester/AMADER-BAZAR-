@@ -30,10 +30,12 @@ import {
   Camera,
   ImagePlus,
   Star,
+  Loader2,
 } from 'lucide-react';
 import { Product, StoreSettings, Order } from '../types';
 import { sendTestEmail, EMAILJS_CONFIG } from '../services/emailService';
 import { AdminOrdersManagement } from './AdminOrdersManagement';
+import { compressImageFile, compressBase64Image, sanitizeProductGallery } from '../utils/imageCompressor';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -199,74 +201,101 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setTimeout(() => setSuccessMessage(''), 3000);
   };
 
-  // Multiple Image Upload helpers (converts all selected files to base64 DataURLs)
-  const handleMultipleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
+  const [isProcessingImages, setIsProcessingImages] = useState(false);
+
+  // Multiple Image Upload helpers (automatically compresses files to lightweight optimized DataURLs)
+  const handleMultipleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const fileList = Array.from(files) as File[];
-    const readPromises = fileList.map((file: File) => {
-      return new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
+    setIsProcessingImages(true);
+    showNotification('ছবি অপ্টিমাইজ ও কম্প্রেস করা হচ্ছে...');
 
-    Promise.all(readPromises).then((newImages) => {
+    try {
+      const fileList = Array.from(files) as File[];
+      const compressedList = await Promise.all(
+        fileList.map((file: File) => compressImageFile(file, { maxWidth: 900, maxHeight: 900, quality: 0.75 }))
+      );
+
+      const validImages = compressedList.filter((img) => Boolean(img));
+
       if (isEditing && editingProduct) {
         const currentGallery = editingProduct.galleryImages && editingProduct.galleryImages.length > 0
           ? [...editingProduct.galleryImages]
           : (editingProduct.image ? [editingProduct.image] : []);
-        const updated = [...currentGallery, ...newImages];
+        const merged = [...currentGallery, ...validImages];
+        const { image: cleanPrimary, galleryImages: cleanGallery } = sanitizeProductGallery(
+          merged[0] || '',
+          merged
+        );
         setEditingProduct({
           ...editingProduct,
-          image: updated[0] || '',
-          galleryImages: updated,
+          image: cleanPrimary,
+          galleryImages: cleanGallery,
         });
       } else {
         const currentGallery = newProduct.galleryImages && newProduct.galleryImages.length > 0
           ? [...newProduct.galleryImages]
           : (newProduct.image ? [newProduct.image] : []);
-        const updated = [...currentGallery, ...newImages];
+        const merged = [...currentGallery, ...validImages];
+        const { image: cleanPrimary, galleryImages: cleanGallery } = sanitizeProductGallery(
+          merged[0] || '',
+          merged
+        );
         setNewProduct({
           ...newProduct,
-          image: updated[0] || '',
-          galleryImages: updated,
+          image: cleanPrimary,
+          galleryImages: cleanGallery,
         });
       }
-      showNotification(`${newImages.length}টি ছবি সফলভাবে যুক্ত করা হয়েছে!`);
-    });
-
-    e.target.value = '';
+      showNotification(`${validImages.length}টি ছবি অপ্টিমাইজ করে সফলভাবে যুক্ত করা হয়েছে!`);
+    } catch (err) {
+      console.error('Image upload compression error:', err);
+      showNotification('ছবি প্রসেসিং করতে সমস্যা হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
+    } finally {
+      setIsProcessingImages(false);
+      e.target.value = '';
+    }
   };
 
   // Helper to add image URL directly
-  const handleAddImageUrl = (url: string, isEditing = false) => {
+  const handleAddImageUrl = async (url: string, isEditing = false) => {
     const trimmed = url.trim();
     if (!trimmed) return;
+
+    let finalUrl = trimmed;
+    if (trimmed.startsWith('data:image/') && trimmed.length > 80_000) {
+      finalUrl = await compressBase64Image(trimmed, { maxWidth: 900, maxHeight: 900, quality: 0.75 });
+    }
+
     if (isEditing && editingProduct) {
       const currentGallery = editingProduct.galleryImages && editingProduct.galleryImages.length > 0
         ? [...editingProduct.galleryImages]
         : (editingProduct.image ? [editingProduct.image] : []);
-      const updated = [...currentGallery, trimmed];
+      const merged = [...currentGallery, finalUrl];
+      const { image: cleanPrimary, galleryImages: cleanGallery } = sanitizeProductGallery(
+        merged[0] || '',
+        merged
+      );
       setEditingProduct({
         ...editingProduct,
-        image: updated[0] || '',
-        galleryImages: updated,
+        image: cleanPrimary,
+        galleryImages: cleanGallery,
       });
       setEditProductImageUrl('');
     } else {
       const currentGallery = newProduct.galleryImages && newProduct.galleryImages.length > 0
         ? [...newProduct.galleryImages]
         : (newProduct.image ? [newProduct.image] : []);
-      const updated = [...currentGallery, trimmed];
+      const merged = [...currentGallery, finalUrl];
+      const { image: cleanPrimary, galleryImages: cleanGallery } = sanitizeProductGallery(
+        merged[0] || '',
+        merged
+      );
       setNewProduct({
         ...newProduct,
-        image: updated[0] || '',
-        galleryImages: updated,
+        image: cleanPrimary,
+        galleryImages: cleanGallery,
       });
       setNewProductImageUrl('');
     }
@@ -364,10 +393,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       return;
     }
 
-    const primaryImage = newProduct.image || currentGallery[0];
-    const finalGallery = currentGallery.includes(primaryImage)
-      ? [primaryImage, ...currentGallery.filter((img) => img !== primaryImage)]
-      : [primaryImage, ...currentGallery];
+    const { image: primaryImage, galleryImages: finalGallery } = sanitizeProductGallery(
+      newProduct.image || currentGallery[0],
+      currentGallery
+    );
 
     const created: Product = {
       ...newProduct,
@@ -403,10 +432,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       ? editingProduct.galleryImages
       : (editingProduct.image ? [editingProduct.image] : []);
 
-    const primaryImage = editingProduct.image || (currentGallery.length > 0 ? currentGallery[0] : '');
-    const finalGallery = primaryImage && !currentGallery.includes(primaryImage)
-      ? [primaryImage, ...currentGallery]
-      : currentGallery;
+    const { image: primaryImage, galleryImages: finalGallery } = sanitizeProductGallery(
+      editingProduct.image || (currentGallery.length > 0 ? currentGallery[0] : ''),
+      currentGallery
+    );
 
     onUpdateProduct({
       ...editingProduct,
@@ -567,19 +596,24 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               })}
 
               {/* Add More Tile inside the grid */}
-              <label className="flex flex-col items-center justify-center min-h-[120px] aspect-square rounded-xl border-2 border-dashed border-amber-300 hover:border-amber-500 bg-white hover:bg-amber-50/50 cursor-pointer transition-all text-center p-3 group">
+              <label className={`flex flex-col items-center justify-center min-h-[120px] aspect-square rounded-xl border-2 border-dashed ${isProcessingImages ? 'border-amber-400 bg-amber-50 cursor-wait' : 'border-amber-300 hover:border-amber-500 bg-white hover:bg-amber-50/50 cursor-pointer'} transition-all text-center p-3 group`}>
                 <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
-                  <ImagePlus className="w-5 h-5" />
+                  {isProcessingImages ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-amber-600" />
+                  ) : (
+                    <ImagePlus className="w-5 h-5" />
+                  )}
                 </div>
                 <span className="text-xs font-bold text-slate-800">
-                  + আরো ছবি যোগ করুন
+                  {isProcessingImages ? 'অপ্টিমাইজ হচ্ছে...' : '+ আরো ছবি যোগ করুন'}
                 </span>
                 <span className="text-[10px] text-slate-500">
-                  (একাধিক নির্বাচন সম্ভব)
+                  {isProcessingImages ? 'অনুগ্রহ করে অপেক্ষা করুন' : '(একাধিক নির্বাচন সম্ভব)'}
                 </span>
                 <input
                   type="file"
                   multiple
+                  disabled={isProcessingImages}
                   accept="image/*"
                   onChange={(e) => handleMultipleImageFileUpload(e, isEditing)}
                   className="hidden"
@@ -589,22 +623,27 @@ export const AdminModal: React.FC<AdminModalProps> = ({
           </div>
         ) : (
           /* Empty State - Big Multi-upload Dropzone */
-          <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-amber-400 hover:border-amber-500 bg-white hover:bg-amber-50/50 rounded-2xl cursor-pointer transition-all text-center group shadow-xs">
+          <label className={`flex flex-col items-center justify-center p-6 border-2 border-dashed ${isProcessingImages ? 'border-amber-500 bg-amber-50 cursor-wait' : 'border-amber-400 hover:border-amber-500 bg-white hover:bg-amber-50/50 cursor-pointer'} rounded-2xl transition-all text-center group shadow-xs`}>
             <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform">
-              <ImagePlus className="w-7 h-7" />
+              {isProcessingImages ? (
+                <Loader2 className="w-7 h-7 animate-spin text-amber-600" />
+              ) : (
+                <ImagePlus className="w-7 h-7" />
+              )}
             </div>
             <span className="text-sm font-black text-slate-900">
-              📸 একাধিক ছবি আপলোড করুন (মোবাইল / কম্পিউটার থেকে)
+              {isProcessingImages ? '📸 ছবি কম্প্রেস ও অপ্টিমাইজ করা হচ্ছে...' : '📸 একাধিক ছবি আপলোড করুন (মোবাইল / কম্পিউটার থেকে)'}
             </span>
             <span className="text-xs text-amber-800 font-semibold mt-1">
-              একসাথে এক বা একাধিক ছবি সিলেক্ট করতে পারবেন
+              {isProcessingImages ? 'উচ্চ রেজোলিউশন ছবিগুলোকে দ্রুত লোডের উপযোগী করা হচ্ছে' : 'একসাথে এক বা একাধিক ছবি সিলেক্ট করতে পারবেন'}
             </span>
             <span className="text-[11px] text-slate-500 mt-0.5">
-              ফাইল বেছে নিতে এখানে ক্লিক করুন (JPG, PNG, WebP)
+              {isProcessingImages ? 'কয়েক সেকেন্ড সময় লাগতে পারে...' : 'ফাইল বেছে নিতে এখানে ক্লিক করুন (JPG, PNG, WebP)'}
             </span>
             <input
               type="file"
               multiple
+              disabled={isProcessingImages}
               accept="image/*"
               onChange={(e) => handleMultipleImageFileUpload(e, isEditing)}
               className="hidden"

@@ -17,21 +17,17 @@ export const Footer: React.FC<FooterProps> = ({
   onSelectCategory,
 }) => {
   // Secret triple-tap / 3-click on logo to open Admin Control Center Login
-  const logoClickCountRef = React.useRef(0);
-  const logoLastClickTimeRef = React.useRef(0);
+  const clickTimesRef = React.useRef<number[]>([]);
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const now = Date.now();
-    if (now - logoLastClickTimeRef.current > 1200) {
-      logoClickCountRef.current = 1;
-    } else {
-      logoClickCountRef.current += 1;
-    }
-    logoLastClickTimeRef.current = now;
+    // Keep clicks from the last 1500ms
+    clickTimesRef.current = [...clickTimesRef.current.filter((t) => now - t < 1500), now];
 
-    if (logoClickCountRef.current >= 3) {
-      logoClickCountRef.current = 0;
+    // When clicked 3 times within 1.5 seconds: open Admin Control Center
+    if (clickTimesRef.current.length >= 3) {
+      clickTimesRef.current = [];
       onOpenAdmin();
     } else {
       onSelectCategory('all');
